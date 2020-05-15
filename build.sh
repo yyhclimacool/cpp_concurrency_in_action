@@ -52,6 +52,6 @@ cmake \
   -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
   -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
-  -DCMAKE_CXX_COMPILER=clang++ && \
+  -DCMAKE_CXX_COMPILER=g++ && \
 cmake --build ${BUILD_DIR} -- -j && \
 cmake --build ${BUILD_DIR} --target install
