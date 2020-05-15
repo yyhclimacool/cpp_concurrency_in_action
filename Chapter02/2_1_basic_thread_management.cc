@@ -21,7 +21,7 @@ private:
 public:
   func(int &i) : ival(i) {}
   void operator()() {
-    long long local;
+    long long local = 0;
     for (int j = 0; j != 10000; ++j) {
       for (int i = 0; i != ival; ++i) {
         ++local;
