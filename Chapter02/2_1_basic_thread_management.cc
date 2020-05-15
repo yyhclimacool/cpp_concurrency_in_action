@@ -54,4 +54,10 @@ int main() {
   t4.join();
 
   oops();
+
+  std::thread t5{do_somework};
+  t5.detach();
+  if (!t5.joinable()) {
+    std::cout << "Running t5 in background" << std::endl;
+  }
 }
