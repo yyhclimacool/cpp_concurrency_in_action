@@ -9,11 +9,17 @@ class hierarchical_mutex {
     unsigned long previous_hierarchy_value_;
     static thread_local unsigned long this_thread_hierarchy_value_;
 
+    // 欲尝试枷锁的mutex的层次值必须要小于当前线程的锁层次值
     void check_for_hierarchy_violation() {
-        if (this_thread_hierarchy_value_ <= hierarchy_value_)
-            throw std::logic_error("mutex hierarchy violated");
+        if (this_thread_hierarchy_value_ <= hierarchy_value_) {
+          std::cout << "violdated this_thread_hierarchy_value_ <= hierarchy_value_" << std::endl;
+          throw std::logic_error("mutex hierarchy violated");
+        } else {
+          std::cout << __func__ << "() passed with this_thread_hierarchy_value_ = " << this_thread_hierarchy_value_ << " hierarchy_value_ = " << hierarchy_value_ << std::endl;
+        }
     }
 
+    // 更新层次值
     void update_hierarchy_value() {
         previous_hierarchy_value_ = this_thread_hierarchy_value_;
         this_thread_hierarchy_value_ = hierarchy_value_;
@@ -38,18 +44,21 @@ public:
     }
 
     void unlock() {
-        if (this_thread_hierarchy_value_ != hierarchy_value_)
-            throw std::logic_error("unlock mutex at the reverse order of lock");
+        if (this_thread_hierarchy_value_ != hierarchy_value_) {
+          std::cout << "violated this_thread_hierarchy_value_ != hierarchy_value_" << std::endl;
+          throw std::logic_error("unlock mutex at the reverse order of lock");
+        }
         this_thread_hierarchy_value_ = previous_hierarchy_value_;
         internal_mutex_.unlock();
     }
 };
 
+// 通过线程本地存储来保存当前锁住的mutex的层次值
 thread_local unsigned long hierarchical_mutex::this_thread_hierarchy_value_(ULONG_MAX);
 
 hierarchical_mutex high_level_mutex(10000);
 hierarchical_mutex low_level_mutex(5000);
-hierarchical_mutex other_mutex(6000);
+hierarchical_mutex other_level_mutex(6000);
 
 int do_low_level_stuff() {
     // don't lock mutex
@@ -63,7 +72,7 @@ int low_level_func() {
 }
 
 void do_high_level_stuff(int val) {
-    std::cout << __func__ << " intval = " << val << std::endl;
+    std::cout << __func__ << " int_val = " << val << std::endl;
 }
 
 void high_level_func() {
@@ -89,10 +98,56 @@ void other_level_func() {
 
 // NOT OK!
 void thread_b() {
-    std::lock_guard guard(other_mutex);
+    std::lock_guard guard(other_level_mutex);
     other_level_func();
 }
 
-int main() {
+/*************************************************************************
+ * 以下代码测试正常情况下的死锁的发生
+ ************************************************************************/
 
+std::mutex high_mutex;
+std::mutex low_mutex;
+std::mutex other_mutex;
+
+int low_lock_func() {
+  std::cout << " --> " << __func__ << std::endl;
+  std::lock_guard guard(low_mutex);
+  return 2;
+}
+
+void high_lock_func() {
+  std::cout << " --> " << __func__;
+  std::lock_guard guard(high_mutex);
+  low_lock_func();
+}
+
+void other_lock_func() {
+  std::cout << " --> " << __func__;
+  high_lock_func();
+}
+
+// 锁住high_mutex，然后再锁住low_mutex，这没有问题
+void thread_1() {
+  std::cout << "--> " << __func__ ;
+  high_lock_func();
+  std::lock_guard guard(other_mutex);
+}
+
+// 先锁住other_mutex，然后锁住high_mutex，然后锁住low_mutex
+void thread_2() {
+  std::cout << "--> " << __func__ ;
+  std::lock_guard guard(other_mutex);
+  other_lock_func();
+}
+
+int main() {
+  // pass
+  thread_a();
+  // exception
+  // thread_b();
+  std::thread t1(thread_1);
+  std::thread t2(thread_2);
+  t1.join();
+  t2.join();
 }
