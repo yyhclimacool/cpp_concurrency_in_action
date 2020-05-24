@@ -2,6 +2,7 @@
 #include <condition_variable>
 #include <thread>
 #include <string>
+#include <queue>
 
 using namespace std;
 
@@ -32,3 +33,6 @@ public:
     data_queue.pop();
   }
 };
+
+int main() {
+}
