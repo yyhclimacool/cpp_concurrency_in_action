@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CURRENT_DIR=`pwd`
-BUILD_DIR=${BUILD_DIR:-${CURRENT_DIR}/build}
+BUILD_DIR=${BUILD_DIR:-${CURRENT_DIR}/cmake_build}
 BUILD_TYPE=${BUILD_TYPE:-Debug}
 INSTALL_DIR=${INSTALL_DIR:-${BUILD_DIR}/${BUILD_TYPE}_install}
 
