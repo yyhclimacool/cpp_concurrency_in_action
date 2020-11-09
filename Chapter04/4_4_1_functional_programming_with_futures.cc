@@ -45,6 +45,7 @@ std::list<T> parallel_quick_sort(std::list<T> input) {
   return result;
 }
 
+/*
 template<typename F, typename A>
 std::future<typename std::result_of<F(A&&)>::type> spawn_task(F &&f, A &&a) {
   using result_type = typename std::result_of<F(A&&)>::type;
@@ -54,6 +55,7 @@ std::future<typename std::result_of<F(A&&)>::type> spawn_task(F &&f, A &&a) {
   t.detach();
   return res;
 }
+*/
 
 int func(int &a) {
   std::cout << __FILE__ << " " << __LINE__ << " " << __func__ << std::endl;
@@ -70,7 +72,9 @@ int main() {
   res = parallel_quick_sort(new_ilist);
   PRINTALL(res);
 
+  /*
   int a = 10;
   std::future<int> f = spawn_task(func, a);
   std::cout << f.get() << ", a = " << a << std::endl;
+  */
 }
